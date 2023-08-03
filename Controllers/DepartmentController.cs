@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Dept_Web_App.Controllers
 {
-    
+
 
     public class DepartmentController : Controller
     {
@@ -29,19 +29,36 @@ namespace Dept_Web_App.Controllers
         {
             try
             {
-               // var list = _context.Departments.ToList();
-                var list = new List<Departments>()
-                {
-                    new Departments() { DId=1,Name="IT"},
-                    new Departments() { DId=2,Name="CS"},
-                    new Departments() { DId=3,Name="Development"},
-                };
+                var list = _context.Departments.ToList();
                 return Json(new JsonResponse() { IsSuccess = true, Data = list });
             }
             catch (Exception ex)
             {
                 var msg = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
-                return Json(new JsonResponse() { IsSuccess=false, Data = msg });
+                return Json(new JsonResponse() { IsSuccess = false, Data = msg });
+            }
+        }
+        [HttpPost]
+        public IActionResult SaveDepartment(Departments model)
+        {
+            try
+            {
+                if (model.DId > 0)
+                {
+                    _context.Departments.Update(model);
+                    _context.SaveChanges();
+                }
+                else
+                {
+                    _context.Departments.Add(model);
+                    _context.SaveChanges();
+                }
+                return Json(new JsonResponse() { IsSuccess = true, Message = "Recored saved successfully.", Data = model });
+            }
+            catch (Exception ex)
+            {
+                var msg = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+                return Json(new JsonResponse() { IsSuccess = false, Data = msg });
             }
         }
     }

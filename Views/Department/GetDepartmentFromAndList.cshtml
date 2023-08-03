@@ -1,6 +1,16 @@
 ﻿
+
 <div class="container-fluid">
-    <form>
+    <form id="departmentForm">
+        <fieldset>
+            <h3 class="text-primary">Department Form</h3>
+            <input type="hidden" name="DId" />
+            <div class="form-group mb-3">
+                <label class="form-label">Name</label>
+                <input type="text" class="form-control" placeholder="Enter department" id="Name" name="Name" />
+            </div>
+            <button type="button" class="btn btn-success" id="btnSave">Save</button>
+        </fieldset>
     </form>
     <br />
     <table class="table table-bordered table-striped table-hover table-light">
@@ -12,9 +22,9 @@
             </tr>
         </thead>
         <tbody id="departmentListDiv">
-            <tr>
+            @*<tr>
                 <td></td>
-            </tr>
+            </tr>*@
         </tbody>
     </table>
 </div>
@@ -36,14 +46,14 @@
                         var row;
                         for (var i = 0; i < list.length; i++) {
                             row += `<tr>
-                                <td>${list[i].dId}</td>
-                                <td>${list[i].name}</td>
-                                <td>
-                                        <button type = "button" class="btn btn-info" onclick='Edit(${list[i].did})'> <i class="fa-solid fa-edit"></i></button>
-                                        <button type = "button" class="btn btn-warning" onclick='Delete(${list[i].did})'> <i class="fa-solid fa-trash-can"></i></button>
-                                </td>
+                               <td>${list[i].dId}</td>
+                               <td>${list[i].name}</td>
+                               <td>
+                                       <button type = "button" class="btn btn-info" onclick='Edit(${list[i].did})'> <i class="fa-solid fa-edit"></i></button> |
+                                       <button type = "button" class="btn btn-warning" onclick='Delete(${list[i].did})'> <i class="fa-solid fa-trash-can"></i></button>
+                               </td>
 
-                                </tr>`;
+                             </tr>`;
                         }
                         $('#departmentListDiv').html(row);
                     } else {
@@ -57,7 +67,44 @@
             error: function (err) { alert(err) }
         });
     }
-    function Edit(id){
+    $('#btnSave').click(function () {
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("SaveDepartment","Department")',
+            data: $('#departmentForm').serialize(),
+            success: function (response) {
+                if (response != undefined || response != null) {
+                    if (response.isSuccess) {
+
+                        var data = response.data;
+                        var row = `<tr>
+                              <td>${data.dId}</td>
+                                  <td>${data.name}</td>
+                              <td>
+                                  <button type = "button" class="btn btn-info" onclick='Edit(${data.did})'> <i class="fa-solid fa-edit"></i></button> |
+                                  <button type = "button" class="btn btn-warning" onclick='Delete($data.did})'> <i class="fa-solid fa-trash-can"></i></button>
+                              </td>
+
+                              </tr>`;
+                        $('#departmentListDiv').append(row);
+                        notyf.open({ type: 'success', message: "Record saved Successfully" });
+                        $('#departmentForm')[0].reset();
+                    } else {
+                        notyf.open({ type: 'error', message: "Something went wrong" });
+                    }
+                } else {
+                    notyf.open({ type: 'error', message: "Something went wrong" });
+                }
+
+            },
+            error: function (err) {
+                console.log(err.statusText);
+                alert(err.statusText);
+                notyf.open({ type: 'error', message: err.statusText });
+            }
+        });
+    });
+    function Edit(id) {
         alert(id);
     }
     function Delete(id) {
