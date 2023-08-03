@@ -1,3 +1,4 @@
+using AspNetCoreHero.ToastNotification;
 using Dept_Web_App.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,6 +9,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlSer
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+
+builder.Services.AddNotyf(config => { config.DurationInSeconds = 10; config.IsDismissable = true; config.Position = NotyfPosition.BottomRight; });
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

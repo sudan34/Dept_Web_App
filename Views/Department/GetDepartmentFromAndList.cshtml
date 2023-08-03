@@ -1,0 +1,66 @@
+﻿
+<div class="container-fluid">
+    <form>
+    </form>
+    <br />
+    <table class="table table-bordered table-striped table-hover table-light">
+        <thead>
+            <tr>
+                <th>Dept Id</th>
+                <th>Name</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="departmentListDiv">
+            <tr>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+
+<script>
+    $(document).ready(function () {
+        LoadDepartmentList();
+    });
+    function LoadDepartmentList() {
+        $.ajax({
+            type: 'GET',
+            url: '@Url.Action("GetDepartmentList","Department")',
+            success: function (response) {
+                if (response != undefined || response != null) {
+                    if (response.isSuccess) {
+                        var list = response.data;
+
+                        var row;
+                        for (var i = 0; i < list.length; i++) {
+                            row += `<tr>
+                                <td>${list[i].dId}</td>
+                                <td>${list[i].name}</td>
+                                <td>
+                                        <button type = "button" class="btn btn-info" onclick='Edit(${list[i].did})'> <i class="fa-solid fa-edit"></i></button>
+                                        <button type = "button" class="btn btn-warning" onclick='Delete(${list[i].did})'> <i class="fa-solid fa-trash-can"></i></button>
+                                </td>
+
+                                </tr>`;
+                        }
+                        $('#departmentListDiv').html(row);
+                    } else {
+                        alert('Error');
+
+                    }
+                } else {
+                    alert('Error');
+                }
+            },
+            error: function (err) { alert(err) }
+        });
+    }
+    function Edit(id){
+        alert(id);
+    }
+    function Delete(id) {
+        alert(id);
+    }
+</script>
