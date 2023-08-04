@@ -38,6 +38,20 @@ namespace Dept_Web_App.Controllers
                 return Json(new JsonResponse() { IsSuccess = false, Data = msg });
             }
         }
+        [HttpGet]
+        public IActionResult Edit(int dId)
+        {
+            try
+            {
+                var obj = _context.Departments.Find(dId);
+                return Json(new JsonResponse() { IsSuccess = true, Data = obj });
+            }
+            catch (Exception ex)
+            {
+                var msg = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+                return Json(new JsonResponse() { IsSuccess = false, Data = msg });
+            }
+        }
         [HttpPost]
         public IActionResult SaveDepartment(Departments model)
         {
@@ -54,6 +68,22 @@ namespace Dept_Web_App.Controllers
                     _context.SaveChanges();
                 }
                 return Json(new JsonResponse() { IsSuccess = true, Message = "Recored saved successfully.", Data = model });
+            }
+            catch (Exception ex)
+            {
+                var msg = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+                return Json(new JsonResponse() { IsSuccess = false, Data = msg });
+            }
+        }
+        [HttpPost]
+        public IActionResult Delete(long _id)
+        {
+            try
+            {
+                var obj = _context.Departments.Find(_id);
+                _context.Departments.Remove(obj);
+                _context.SaveChanges();
+                return Json(new { status = true, Message = "Recored delated successfully." });
             }
             catch (Exception ex)
             {

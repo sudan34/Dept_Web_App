@@ -1,0 +1,186 @@
+﻿@model Dept_Web_App.Models.Employees
+
+<div class="container-fluid">
+
+    <h3 class="text-white">Employee Form</h3>
+    <a id="CreateNew" class="btn btn-outline-info btn-sm">
+        <i class="fa-solid fa-plus-circle"></i>
+        Create New
+    </a>
+    <br />
+    <br />
+    <form class="row" id="employeeForm">
+        <input type="hidden" asp-for="EmpId" value="" />
+        <div class="col-md-4 mb-3">
+            <label for="FullName" class="form-label">Full Name</label>
+            <input type="text" class="form-control" asp-for="FullName" />
+        </div>
+        <div class="col-md-8 mb-3">
+            <label for="Email" class="form-label">Email Address</label>
+            <input type="email" class="form-control" asp-for="Email" />
+        </div>
+        <div class="col-md-4 mb-3">
+            <label for="Contact" class="form-label">Contact Number</label>
+            <input type="text" class="form-control" asp-for="Contact" />
+
+        </div>
+        <div class="col-md-4 mb-3">
+            <label for="Address" class="form-label">Address</label>
+            <input type="text" class="form-control" asp-for="Address" />
+        </div>
+        <div class="col-md-4 mb-3">
+            <label for="Address" class="form-label">Department</label>
+            <select class="form-control" asp-for="DId" asp-items="ViewBag.DepartmentList">
+                <option value="">--Choose--</option>
+            </select>
+        </div>
+        <div class="col-md-12 mt-2">
+            <button type="button" class="btn btn-success" id="btnSave"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+        </div>
+    </form>
+
+    <br />
+    <h3 class="text-white">Employee List</h3>
+    <table class="table table-bordered table-striped table-hover table-light">
+        <thead>
+            <tr>
+                <th>Emp Id</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Address</th>
+                <th>Contact</th>
+                <th>Department</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="employeeList">
+        </tbody>
+    </table>
+</div>
+
+<script>
+    $(document).ready(function () {
+        GetAllEmployees();
+        var currentRow;
+    });
+    function GetAllEmployees() {
+        $.ajax({
+            type: 'GET',
+            url: '@Url.Action("GetEmployeeList","Employee")',
+            success: function (response) {
+                if (response != undefined || response != null) {
+                    console.log(response);
+                    if (response.isSuccess) {
+                        var list = response.data;
+
+                        var html = '';
+                        for (var i = 0; i < response.length; i++) {
+                            html += `<tr>
+                               <td>${response[i].empId}</td>
+                               <td>${response[i].fullName}</td>
+                               <td>${response[i].contact}</td>
+                               <td>${response[i].email}</td>
+                               <td>${response[i].address}</td>
+                                   <td>${response[i].department}</td>
+                                <td>
+                                    <button type = "button" class="btn btn-info" onclick='Edit(${response[i].empId},this)'> <i class="fa-solid fa-edit"></i></button> |
+                                    <button type = "button" class="btn btn-warning" onclick='Delete(${response[i].empId},this)'> <i class="fa-solid fa-trash-can"></i></button>
+                                </td>
+
+                               </tr>`;
+                        }
+                        $('#employeeList').html(html);
+                    } else {
+                        alert('Error');
+
+                    }
+                } else {
+                    alert('Error');
+                }
+            },
+            error: function (err) { alert(err) }
+        });
+    }
+
+    $('#btnSave').click(function () {
+        var _empId = $('#EmpId').val();
+        var _fullName = $('#FullName').val();
+        var _email = $('#Email').val();
+        var _contact = $('#Contact').val();
+        var _address = $('#Address').val();
+        var _did = $('#DId:Selected').val();
+        var _dName = $('#DId:selected').text();
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("SaveEmployee","Employee")',
+            data: $('#employeeForm').serialize(),
+            success: function (response) {
+                if (response != undefined || response != null) {
+                    if (response.isSuccess) {
+                        var data = response.data;
+                        if (_empId != '') { //Edit
+                            currentRow.find('td:eq(1)').text(data.name);
+                            notyf.open({ type: 'success', message: "Record saved Successfully" });
+                            $('#departmentForm')[0].reset();
+                        } else { //Insert
+                            var data = response.data;
+                            var row = `<tr>
+                                <td>${data.empId}</td>
+                                <td>${data.fullName}</td>
+                                <td>${data.contact}</td>
+                                <td>${data.email}</td>
+                                <td>${data.address}</td>
+                                <td>${data.department}</td>
+                                 <td>
+                                     <button type = "button" class="btn btn-info" onclick='Edit(${data.empId},this)'> <i class="fa-solid fa-edit"></i></button> |
+                                     <button type = "button" class="btn btn-warning" onclick='Delete(${data.empId},this)'> <i class="fa-solid fa-trash-can"></i></button>
+                                 </td>
+
+                                </tr>`;
+                        }
+                        $('#employeeForm').append(row);
+                        notyf.open({ type: 'success', message: "Record saved Successfully" });
+                        $('#departmentForm')[0].reset();
+                    } else {
+                        notyf.open({ type: 'error', message: "Something went wrong" });
+                    }
+                } else {
+                    notyf.open({ type: 'error', message: "Something went wrong" });
+                }
+
+            },
+            error: function (err) {
+                console.log(err.statusText);
+                alert(err.statusText);
+                notyf.open({ type: 'error', message: err.statusText });
+            }
+        });
+    });
+
+    function Edit(id, elememt) {
+        currentRow = $(elememt).closest('tr');
+
+        $.ajax({
+            type: 'GET',
+            url: '@Url.Action("Edit","Employee")',
+            data: { empId: id },
+            success: function (response) {
+                if (response != undefined || response != null) {
+                    if (response.isSuccess) {
+                        $('#empId').val(response.data.empId);
+                        $('#Name').val(response.data.empId);
+                    }
+                    else {
+                        notyf.open({ type: 'error', message: "Something went wrong" });
+                    }
+                }
+            },
+            error: function (err) {
+                console.log(err.statusText);
+                alert(err.statusText);
+                notyf.open({ type: 'error', message: err.statusText });
+            }
+
+        });
+    }
+</script>

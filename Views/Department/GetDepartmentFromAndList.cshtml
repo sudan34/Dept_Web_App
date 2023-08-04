@@ -1,10 +1,15 @@
-﻿
+﻿@model Dept_Web_App.Models.Departments
 
 <div class="container-fluid">
     <form id="departmentForm">
         <fieldset>
-            <h3 class="text-primary">Department Form</h3>
-            <input type="hidden" name="DId" />
+            <h3 class="text-white">Department Form</h3>
+            <a id="CreateNew" class="btn btn-outline-info btn-sm">
+                <i class="fa-solid fa-plus-circle"></i>
+                Create New
+            </a>
+            <br />
+            <input type="hidden" name="DId" id="did" />
             <div class="form-group mb-3">
                 <label class="form-label">Name</label>
                 <input type="text" class="form-control" placeholder="Enter department" id="Name" name="Name" />
@@ -22,9 +27,6 @@
             </tr>
         </thead>
         <tbody id="departmentListDiv">
-            @*<tr>
-                <td></td>
-            </tr>*@
         </tbody>
     </table>
 </div>
@@ -33,6 +35,7 @@
 <script>
     $(document).ready(function () {
         LoadDepartmentList();
+        var currentRow;
     });
     function LoadDepartmentList() {
         $.ajax({
@@ -46,14 +49,14 @@
                         var row;
                         for (var i = 0; i < list.length; i++) {
                             row += `<tr>
-                               <td>${list[i].dId}</td>
-                               <td>${list[i].name}</td>
-                               <td>
-                                       <button type = "button" class="btn btn-info" onclick='Edit(${list[i].did})'> <i class="fa-solid fa-edit"></i></button> |
-                                       <button type = "button" class="btn btn-warning" onclick='Delete(${list[i].did})'> <i class="fa-solid fa-trash-can"></i></button>
-                               </td>
+                                <td>${list[i].dId}</td>
+                                <td>${list[i].name}</td>
+                                <td>
+                                        <button type = "button" class="btn btn-info" onclick='Edit(${list[i].dId})'> <i class="fa-solid fa-edit"></i></button> |
+                                        <button type = "button" class="btn btn-warning" onclick='Delete(${list[i].dId})'> <i class="fa-solid fa-trash-can"></i></button>
+                                </td>
 
-                             </tr>`;
+                              </tr>`;
                         }
                         $('#departmentListDiv').html(row);
                     } else {
@@ -68,6 +71,8 @@
         });
     }
     $('#btnSave').click(function () {
+        var _did = $('#DId').val();
+        var _name = $('#Name');
         $.ajax({
             type: 'POST',
             url: '@Url.Action("SaveDepartment","Department")',
@@ -77,18 +82,24 @@
                     if (response.isSuccess) {
 
                         var data = response.data;
-                        var row = `<tr>
+                        if (_did != '') { //Edit
+                            currentRow.find('td:eq(1)').text(data.name);
+                            notyf.open({ type: 'success', message: "Record saved Successfully" });
+                            $('#departmentForm')[0].reset();
+                        } else { //Insert
+                            var row = `<tr>
                               <td>${data.dId}</td>
-                                  <td>${data.name}</td>
+                              <td>${data.name}</td>
                               <td>
-                                  <button type = "button" class="btn btn-info" onclick='Edit(${data.did})'> <i class="fa-solid fa-edit"></i></button> |
-                                  <button type = "button" class="btn btn-warning" onclick='Delete($data.did})'> <i class="fa-solid fa-trash-can"></i></button>
+                                  <button type = "button" class="btn btn-info" onclick='Edit(${data.dId},this)'> <i class="fa-solid fa-edit"></i></button> |
+                                  <button type = "button" class="btn btn-warning" onclick='Delete(${data.dId},this)'> <i class="fa-solid fa-trash-can"></i></button>
                               </td>
-
                               </tr>`;
-                        $('#departmentListDiv').append(row);
-                        notyf.open({ type: 'success', message: "Record saved Successfully" });
-                        $('#departmentForm')[0].reset();
+                            $('#departmentListDiv').append(row);
+                            notyf.open({ type: 'success', message: "Record saved Successfully" });
+                            $('#departmentForm')[0].reset();
+                        }
+
                     } else {
                         notyf.open({ type: 'error', message: "Something went wrong" });
                     }
@@ -104,9 +115,39 @@
             }
         });
     });
-    function Edit(id) {
-        alert(id);
+
+    $('#CreateNew').click(function () {
+        $('form:input').val('');
+        $('#departmentForm')[0].reset();
+    });
+
+    function Edit(id, elememt) {
+        currentRow = $(elememt).closest('tr');
+
+        $.ajax({
+            type: 'GET',
+            url: '@Url.Action("Edit","Department")',
+            data: { dId: id },
+            success: function (response) {
+                if (response != undefined || response != null) {
+                    if (response.isSuccess) {
+                        $('#DId').val(response.data.dId);
+                        $('#Name').val(response.data.dId);
+                    }
+                    else {
+                        notyf.open({ type: 'error', message: "Something went wrong" });
+                    }
+                }
+            },
+            error: function (err) {
+                console.log(err.statusText);
+                alert(err.statusText);
+                notyf.open({ type: 'error', message: err.statusText });
+            }
+
+        });
     }
+
     function Delete(id) {
         alert(id);
     }
